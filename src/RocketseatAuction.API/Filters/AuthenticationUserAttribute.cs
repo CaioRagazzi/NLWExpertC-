@@ -1,22 +1,27 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
-using RockterseatAuction.API.Repositories;
+using RockterseatAuction.API.Contracts;
 
 namespace RockterseatAuction.API.Filters;
 public class AuthenticationUserAttributes : AuthorizeAttribute, IAuthorizationFilter
 {
+    private readonly IUserRepository _userRepository;
+
+    public AuthenticationUserAttributes(IUserRepository userRepository)
+    {
+        _userRepository = userRepository;
+    }
+
     public void OnAuthorization(AuthorizationFilterContext context)
     {
         try
         {
             var token = TokenOnRequest(context.HttpContext);
 
-            var repository = new RockterseatAuctionDbContext();
-
             var email = FromBase64String(token);
 
-            var exists = repository.Users.Any(user => user.Email.Equals(email));
+            var exists = _userRepository.ExistUserWithEmail(email);
 
             if (!exists)
             {

@@ -1,22 +1,23 @@
+using RockterseatAuction.API.Contracts;
 using RockterseatAuction.API.Entities;
-using RockterseatAuction.API.Repositories;
 
 namespace RockterseatAuction.API.Services;
-public class LoggedUser
+public class LoggedUser : ILoggedUser
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IUserRepository _userRepository;
 
-    public LoggedUser(IHttpContextAccessor httpContextAccessor)
+    public LoggedUser(IHttpContextAccessor httpContextAccessor, IUserRepository userRepository)
     {
         _httpContextAccessor = httpContextAccessor;
+        _userRepository = userRepository;
     }
 
     public User User()
     {
-        var repository = new RockterseatAuctionDbContext();
         var token = TokenOnRequest();
         var email = FromBase64String(token);
-        return repository.Users.First(user => user.Email.Equals(email));
+        return _userRepository.GetUserByEmail(email);
     }
 
     private string TokenOnRequest()
